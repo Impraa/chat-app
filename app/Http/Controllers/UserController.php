@@ -53,4 +53,9 @@ class UserController extends Controller
         auth()->logout();
         return redirect('/')->with('success', 'You have logged out!');
     }
+
+    public function showProfilePage(User $profile)
+    {
+        return view('profile', ['username' => $profile->username, 'posts' => $profile->posts()->latest()->get(), 'postCount' => $profile->posts()->count()]);
+    }
 }
