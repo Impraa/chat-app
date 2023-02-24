@@ -15,6 +15,10 @@ use App\Http\Controllers\UserController;
 |
 */
 
+Route::get('/admins-only', function () {
+    return "you are admin congrats";
+})->middleware('can:visitAdminPages');
+
 Route::get('/', [UserController::class, "showCorrectHomepage"])->name('login');
 Route::post('/register', [UserController::class, "register"])->middleware('guest');
 Route::post('/login', [UserController::class, "login"])->middleware('guest');
@@ -23,6 +27,8 @@ Route::post('/logout', [UserController::class, "logout"])->middleware('mustBeLog
 Route::get('/create-post', [PostController::class, 'showCreatePost'])->middleware('mustBeLoggedIn');
 Route::post('/create-post', [PostController::class, 'storeNewPost'])->middleware('mustBeLoggedIn');
 Route::get('/post/{post}', [PostController::class, 'showPost']);
-Route::delete('/post/{post}', [PostController::class, 'deletePost']);
+Route::delete('/post/{post}', [PostController::class, 'deletePost'])->middleware('can:delete,post');
+Route::get('/post/{post}/edit', [PostController::class, 'showUpdatePost'])->middleware('can:update,post');
+Route::put('/post/{post}', [PostController::class, 'updatePost']);
 
 Route::get('/profile/{profile:username}', [UserController::class, 'showProfilePage'])->middleware('mustBeLoggedIn');
