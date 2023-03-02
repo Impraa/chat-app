@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\FollowController;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,4 +34,9 @@ Route::delete('/post/{post}', [PostController::class, 'deletePost'])->middleware
 Route::get('/post/{post}/edit', [PostController::class, 'showUpdatePost'])->middleware('can:update,post');
 Route::put('/post/{post}', [PostController::class, 'updatePost']);
 
+Route::post('/create-follow/{user:username}', [FollowController::class, 'createFollow'])->middleware('mustBeLoggedIn');
+Route::post('/remove-follow/{user:username}', [FollowController::class, 'removeFollow'])->middleware('mustBeLoggedIn');
+
 Route::get('/profile/{profile:username}', [UserController::class, 'showProfilePage'])->middleware('mustBeLoggedIn');
+Route::get('/profile/{profile:username}/followers', [UserController::class, 'showFollowers'])->middleware('mustBeLoggedIn');
+Route::get('/profile/{profile:username}/following', [UserController::class, 'showFollowing'])->middleware('mustBeLoggedIn');

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Follow;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Intervention\Image\Facades\Image;
@@ -58,7 +59,14 @@ class UserController extends Controller
 
     public function showProfilePage(User $profile)
     {
-        return view('profile', ['username' => $profile->username, 'posts' => $profile->posts()->latest()->get(), 'postCount' => $profile->posts()->count()]);
+        $currentlyFollowing = 0;
+
+        if (auth()->check()) {
+            $currentlyFollowing = Follow::where([['user_id', '=', auth()->user()->id], ['followeduser', '=', $profile->id]])->count();
+        }
+
+
+        return view('profile', ['username' => $profile->username, 'posts' => $profile->posts()->latest()->get(), 'postCount' => $profile->posts()->count(), 'avatar' => $profile->avatar, 'currentlyFollowing' => $currentlyFollowing]);
     }
 
     public function showAvatarForm()
@@ -79,5 +87,40 @@ class UserController extends Controller
         $image = Image::make($request->file('avatar'))->fit(120)->encode('jpg');
 
         Storage::put('public/userAvatars/' . $filename, $image);
+
+        $oldAvatar = $user->avatar;
+
+        $user->avatar = $filename;
+        $user->save();
+
+        if ($oldAvatar != '/fallback-avatar.jpg') {
+            Storage::delete(str_replace("/storage/", "public/", $oldAvatar));
+        }
+
+        return back()->with("success", "New avatar is made!");
+    }
+
+    public function showFollowers(User $profile)
+    {
+        $currentlyFollowing = 0;
+
+        if (auth()->check()) {
+            $currentlyFollowing = Follow::where([['user_id', '=', auth()->user()->id], ['followeduser', '=', $profile->id]])->count();
+        }
+
+
+        return view('profile-followers', ['username' => $profile->username, 'posts' => $profile->posts()->latest()->get(), 'postCount' => $profile->posts()->count(), 'avatar' => $profile->avatar, 'currentlyFollowing' => $currentlyFollowing]);
+    }
+
+    public function showFollowing(User $profile)
+    {
+        $currentlyFollowing = 0;
+
+        if (auth()->check()) {
+            $currentlyFollowing = Follow::where([['user_id', '=', auth()->user()->id], ['followeduser', '=', $profile->id]])->count();
+        }
+
+
+        return view('profile-following', ['username' => $profile->username, 'posts' => $profile->posts()->latest()->get(), 'postCount' => $profile->posts()->count(), 'avatar' => $profile->avatar, 'currentlyFollowing' => $currentlyFollowing]);
     }
 }
