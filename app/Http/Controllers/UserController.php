@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Follow;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\View;
 use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Storage;
 
@@ -45,7 +46,7 @@ class UserController extends Controller
     public function showCorrectHomepage()
     {
         if (auth()->check()) {
-            return view('homepage-feed');
+            return view('homepage-feed', ['feedPosts' => auth()->user()->feedPosts()->latest()->paginate(5)]);
         } else {
             return view('homepage');
         }
@@ -57,7 +58,7 @@ class UserController extends Controller
         return redirect('/')->with('success', 'You have logged out!');
     }
 
-    public function showProfilePage(User $profile)
+    private function getProfileData($profile)
     {
         $currentlyFollowing = 0;
 
@@ -66,7 +67,13 @@ class UserController extends Controller
         }
 
 
-        return view('profile', ['username' => $profile->username, 'posts' => $profile->posts()->latest()->get(), 'postCount' => $profile->posts()->count(), 'avatar' => $profile->avatar, 'currentlyFollowing' => $currentlyFollowing]);
+        View::share('sharedData', ['username' => $profile->username,  'postCount' => $profile->posts()->count(), 'avatar' => $profile->avatar, 'currentlyFollowing' => $currentlyFollowing, 'followersCount' => $profile->followers()->count(), 'followingCount' => $profile->following()->count()]);
+    }
+
+    public function showProfilePage(User $profile)
+    {
+        $this->getProfileData($profile);
+        return view('profile', ['posts' => $profile->posts()->latest()->get()]);
     }
 
     public function showAvatarForm()
@@ -102,25 +109,13 @@ class UserController extends Controller
 
     public function showFollowers(User $profile)
     {
-        $currentlyFollowing = 0;
-
-        if (auth()->check()) {
-            $currentlyFollowing = Follow::where([['user_id', '=', auth()->user()->id], ['followeduser', '=', $profile->id]])->count();
-        }
-
-
-        return view('profile-followers', ['username' => $profile->username, 'posts' => $profile->posts()->latest()->get(), 'postCount' => $profile->posts()->count(), 'avatar' => $profile->avatar, 'currentlyFollowing' => $currentlyFollowing]);
+        $this->getProfileData($profile);
+        return view('profile-followers', ['followers' => $profile->followers()->latest()->get()]);
     }
 
     public function showFollowing(User $profile)
     {
-        $currentlyFollowing = 0;
-
-        if (auth()->check()) {
-            $currentlyFollowing = Follow::where([['user_id', '=', auth()->user()->id], ['followeduser', '=', $profile->id]])->count();
-        }
-
-
-        return view('profile-following', ['username' => $profile->username, 'posts' => $profile->posts()->latest()->get(), 'postCount' => $profile->posts()->count(), 'avatar' => $profile->avatar, 'currentlyFollowing' => $currentlyFollowing]);
+        $this->getProfileData($profile);
+        return view('profile-following', ['following' => $profile->following()->latest()->get()]);
     }
 }
