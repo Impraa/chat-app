@@ -33,6 +33,7 @@ Route::get('/post/{post}', [PostController::class, 'showPost']);
 Route::delete('/post/{post}', [PostController::class, 'deletePost'])->middleware('can:delete,post');
 Route::get('/post/{post}/edit', [PostController::class, 'showUpdatePost'])->middleware('can:update,post');
 Route::put('/post/{post}', [PostController::class, 'updatePost']);
+Route::get('/search/{term}', [PostController::class, 'search']);
 
 Route::post('/create-follow/{user:username}', [FollowController::class, 'createFollow'])->middleware('mustBeLoggedIn');
 Route::post('/remove-follow/{user:username}', [FollowController::class, 'removeFollow'])->middleware('mustBeLoggedIn');
