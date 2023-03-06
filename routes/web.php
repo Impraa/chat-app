@@ -1,5 +1,7 @@
 <?php
 
+use App\Events\Message;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
@@ -41,3 +43,23 @@ Route::post('/remove-follow/{user:username}', [FollowController::class, 'removeF
 Route::get('/profile/{profile:username}', [UserController::class, 'showProfilePage'])->middleware('mustBeLoggedIn');
 Route::get('/profile/{profile:username}/followers', [UserController::class, 'showFollowers'])->middleware('mustBeLoggedIn');
 Route::get('/profile/{profile:username}/following', [UserController::class, 'showFollowing'])->middleware('mustBeLoggedIn');
+
+Route::middleware('cache.headers:public;max_age=20;etag')->group(function () {
+    Route::get('/profile/{profile:username}/raw', [UserController::class, 'profileRaw'])->middleware('mustBeLoggedIn');
+    Route::get('/profile/{profile:username}/followers/raw', [UserController::class, 'followersRaw'])->middleware('mustBeLoggedIn');
+    Route::get('/profile/{profile:username}/following/raw', [UserController::class, 'followingRaw'])->middleware('mustBeLoggedIn');
+});
+
+Route::post('/send-chat-message', function (Request $request) {
+    $incomingFields = $request->validate([
+        'textvalue' => 'required'
+    ]);
+
+    if (!trim(strip_tags($incomingFields['textvalue']))) {
+        return response()->noContent();
+    }
+
+    broadcast(new Message(['username' => auth()->user()->username, 'textvalue' => strip_tags($request->textvalue), 'avatar' => auth()->user()->avatar]))->toOthers();
+
+    return response()->noContent();
+})->middleware('mustBeLoggedIn');

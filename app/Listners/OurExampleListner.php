@@ -23,6 +23,6 @@ class OurExampleListner
     public function handle(OurExampleEvent $event): void
     {
         //
-        Log::debug("The user {$event->username} just {$event->action}ed");
+        Log::debug("The user {$event->username} just {$event->action}");
     }
 }

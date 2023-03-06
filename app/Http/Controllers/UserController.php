@@ -121,4 +121,19 @@ class UserController extends Controller
         $this->getProfileData($profile);
         return view('profile-following', ['following' => $profile->following()->latest()->get()]);
     }
+
+    public function profileRaw(User $profile)
+    {
+        return response()->json(['theHTML' => view('profile-only', ['posts' => $profile->posts()->latest()->get()])->render(), 'pageTitle' => $profile->username . "'s profile"]);
+    }
+
+    public function followersRaw(User $profile)
+    {
+        return response()->json(['theHTML' => view('profile-followers-only', ['followers' => $profile->followers()->latest()->get()])->render(), 'pageTitle' => $profile->username . "'s followers"]);
+    }
+
+    public function followingRaw(User $profile)
+    {
+        return response()->json(['theHTML' => view('profile-following-only', ['following' => $profile->following()->latest()->get()])->render(), 'pageTitle' => $profile->username . " follows"]);
+    }
 }
