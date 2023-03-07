@@ -71,4 +71,28 @@ class PostController extends Controller
         $foundPosts->load('user:id,username,avatar');
         return $foundPosts;
     }
+
+    public function createPostAPI(Request $request)
+    {
+        $incomingFields = $request->validate([
+            'title' => 'required',
+            'body' => 'required',
+        ]);
+
+        $incomingFields['title'] = strip_tags($incomingFields['title']);
+        $incomingFields['body'] = strip_tags($incomingFields['body']);
+        $incomingFields['user_id'] = auth()->id();
+
+        $newPost = Post::create($incomingFields);
+
+        dispatch(new SendNewPostEmail(['sendTo' => auth()->user()->email, 'username' => auth()->user()->username, 'title' => $newPost->title]));
+
+        return $newPost->id;
+    }
+
+    public function deletePostAPI(Post $post)
+    {
+        $post->delete();
+        return "Post successfuly deleted";
+    }
 }

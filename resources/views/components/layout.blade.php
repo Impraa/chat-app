@@ -68,7 +68,7 @@
     @endif
     {{$slot}}
 
-    <footer class="border-top text-center small text-muted py-3">
+    <footer class="border-top text-center small text-muted py-3 fixed-bottom">
         <p class="m-0">Copyright &copy; {{date('Y')}} <a href="/" class="text-muted">Chat App</a>. All rights reserved.</p>
       </footer>
       @auth

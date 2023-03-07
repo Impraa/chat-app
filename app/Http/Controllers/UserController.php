@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\OurExampleEvent;
+use App\Models\Post;
 use App\Models\User;
 use App\Models\Follow;
 use Illuminate\Http\Request;
+use App\Events\OurExampleEvent;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Cache;
 use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Storage;
 
@@ -50,7 +52,10 @@ class UserController extends Controller
         if (auth()->check()) {
             return view('homepage-feed', ['feedPosts' => auth()->user()->feedPosts()->latest()->paginate(5)]);
         } else {
-            return view('homepage');
+            $postCount = Cache::remember('postCount', 20, function () {
+                return Post::count();
+            });
+            return view('homepage', ['postCount' => $postCount]);
         }
     }
 
@@ -135,5 +140,21 @@ class UserController extends Controller
     public function followingRaw(User $profile)
     {
         return response()->json(['theHTML' => view('profile-following-only', ['following' => $profile->following()->latest()->get()])->render(), 'pageTitle' => $profile->username . " follows"]);
+    }
+
+    public function loginAPI(Request $request)
+    {
+        $incomingFields = $request->validate([
+            'username' => 'required',
+            'password' => 'required'
+        ]);
+
+        if (auth()->attempt($incomingFields)) {
+            $user = User::where('username', $incomingFields['username'])->first();
+            $token = $user->createToken('chatAppToken')->plainTextToken;
+            return $token;
+        }
+
+        return 'Something went wrong';
     }
 }
